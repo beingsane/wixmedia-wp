@@ -1,0 +1,25 @@
+i.mce-i-icon {
+    font: 400 20px/1 dashicons;
+    padding: 0;
+    vertical-align: top;
+    speak: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    margin-left: -2px;
+    padding-right: 2px
+}
+#TB_window {z-index: 100101;}
+
+.wix-image-edit select {
+    width: 70% !important;
+}
+
+.wix-image-edit .filter-visible .filter-toggle:after,
+.wix-image-edit .jpeg-visible .jpeg-toggle:after,
+.wix-image-edit .adjust-visible .adjust-toggle:after { content: '\f142'; }
+
+@media only screen and (max-width: 900px) {
+    .wix-image-edit select {
+        width: 100% !important;
+    }
+}

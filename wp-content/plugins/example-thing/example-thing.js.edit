@@ -1,0 +1,116 @@
+/*globals window, document, $, jQuery, _, Backbone */
+(function ($, _, Backbone) {
+	"use strict";
+
+	var media = wp.media,
+		imageEdit = {};
+
+	_.extend(imageEdit, { view: {}, controller: {}, mediaFrame: {} });
+
+	imageEdit.controller.ImageEdit = media.controller.State.extend({
+		defaults: {
+			id: 'thing-details',
+			title: 'Wix Image Editor',
+			toolbar: 'thing-details',
+			content: 'thing-details',
+			menu: 'default',
+			router: false,
+			priority: 60
+		},
+
+		initialize: function( options ) {
+			this.thing = options.thing;
+			media.controller.State.prototype.initialize.apply( this, arguments );
+		}
+	});
+
+	imageEdit.view.ImageEdit = media.view.Settings.AttachmentDisplay.extend({
+		className: 'thing-details',
+		template:  media.template( 'thing-details' ),
+		prepare: function() {
+			return _.defaults( {
+				model: this.model.toJSON()
+			}, this.options );
+		}
+	});
+
+	imageEdit.mediaFrame.ImageEdit = media.view.MediaFrame.Select.extend({
+		defaults: {
+			id:      'thing',
+			url:     '',
+			type:    'link',
+			title:   'Thing!',
+			priority: 120
+		},
+
+		initialize: function( options ) {
+			this.thing = new Backbone.Model( options.metadata );
+			this.options.selection = new media.model.Selection( this.thing.attachment, { multiple: false } );
+			media.view.MediaFrame.Select.prototype.initialize.apply( this, arguments );
+		},
+
+		bindHandlers: function() {
+			media.view.MediaFrame.Select.prototype.bindHandlers.apply( this, arguments );
+
+			this.on( 'menu:create:thing-details', this.createMenu, this );
+			this.on( 'content:render:thing-details', this.contentDetailsRender, this );
+			this.on( 'toolbar:render:thing-details', this.toolbarRender, this );
+		},
+
+		contentDetailsRender: function() {
+			var view = new imageEdit.view.ImageEdit({
+				controller: this,
+				model: this.state().thing,
+				attachment: this.state().thing.attachment
+			}).render();
+
+			this.content.set( view );
+		},
+
+		toolbarRender: function() {
+			this.toolbar.set( new media.view.Toolbar({
+				controller: this,
+				items: {
+					button: {
+						style:    'primary',
+						text:     'Update Thing!',
+						priority: 80,
+						click:    function() {
+							var controller = this.controller;
+							controller.close();
+							controller.state().trigger( 'update', controller.thing.toJSON() );
+							controller.setState( controller.options.state );
+							controller.reset();
+						}
+					}
+				}
+			}) );
+		},
+
+		createStates: function() {
+			this.states.add([
+				new imageEdit.controller.ImageEdit( {
+					thing: this.thing
+				} )
+			]);
+		}
+	});
+
+	var frame = new imageEdit.mediaFrame.ImageEdit({
+		frame: 'thing',
+		state: 'thing-details',
+		metadata: {'name': 'Bora!', 'color': 'Red!'}
+	});
+	frame.state('thing-details').on( 'update', function( selection ) {
+		console.log(selection);
+		frame.detach();
+	});
+	imageEdit.frame = frame;
+	// imageEdit.frame.open();
+	_.extend(wp, { 
+		wix: {
+			imageEdit: imageEdit
+		}
+	});
+
+}(jQuery, _, Backbone));
